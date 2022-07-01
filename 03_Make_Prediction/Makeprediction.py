@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from PIL import Image
 from torchvision import transforms
+import time
 
 class model(nn.Module):
     def __init__(self):
@@ -26,7 +27,7 @@ class model(nn.Module):
         return x
 
 if __name__ == '__main__':
-
+    start_time = time.time()
     # construct the argument parser and parse the arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--img', default='1.jpg', type=str,
@@ -37,6 +38,9 @@ if __name__ == '__main__':
 
     model = model()
     model.load_state_dict(torch.load('home/Palletfinder/03_Make_Prediction/output/model.pth'))
+
+    print("It took {} to load Model".format(time.time() - start_time))
+    pred_time = time.time()
 
     path = 'home/Palletfinder/03_Make_Prediction/Images/frame_left.png'
     aug = transforms.Compose([
@@ -53,3 +57,4 @@ if __name__ == '__main__':
     outputs = model(image)
     _, preds = torch.max(outputs.data, 1)
     print(f"Predicted output: {lb.classes_[preds]}")
+    print("It took {} to predict".format(time.time() - pred_time))

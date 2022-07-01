@@ -1,5 +1,6 @@
 from V4l2_Functions import *
 import RPi.GPIO as GPIO
+import time
 
 #Pin Definitions
 Digital_Out_0 = 43 # Digital_Out_0
@@ -11,6 +12,7 @@ GPIO.setup(Digital_Out_0, GPIO.OUT, initial=GPIO.LOW)
 GPIO.setup(Digital_Out_1, GPIO.OUT, initial=GPIO.LOW)
 
 if __name__ == "__main__":
+    start_time = time.time()
     set_camera_properties_left()
     set_camera_properties_right()
     video_capture_left, video_capture_right = Init_Pipeline()
@@ -30,3 +32,4 @@ if __name__ == "__main__":
     
     GPIO.output(Digital_Out_0, GPIO.LOW)
     GPIO.output(Digital_Out_1, GPIO.LOW) 
+    print("It took {} to snap picture".format(time.time() - start_time))
