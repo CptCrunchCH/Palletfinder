@@ -54,7 +54,7 @@ class can_receive_thread (threading.Thread):
         ]
         bus = can.interface.Bus(channel="can0", bustype="socketcan", can_filters=filters)
         
-        msg_old = 1
+        msg_old = 10
 
         while(1):
             msg = bus.recv()
@@ -68,33 +68,24 @@ class can_receive_thread (threading.Thread):
             msg_old = msg.data[0]
         print("Exiting " + self.name)
 
-class snap_image (threading.Thread):
-    def __init__(self,name, image_right, image_left):
-        threading.Thread.__init__(self)
-        self.name = name
-        self.image_rght = image_right
-        self.image_left = image_left
+def snap_image ():
+    path_right = "04_CAN/Images/frame_right.png"
+    path_left = "04_CAN/Images/frame_left.png"
+    start_time = time.time()
+    set_camera_properties_left()
+    set_camera_properties_right()
+    video_capture_left, video_capture_right = Init_Pipeline()
+    GPIO.output(Digital_Out_0, GPIO.HIGH)
+    GPIO.output(Digital_Out_1, GPIO.HIGH)
+    image_right = read_frame(video_capture_right)
+    image_left = read_frame(video_capture_left)
 
-    def run(self):
-        print("\nStarting " + self.name)
-        path_right = "04_CAN/Images/frame_right.png"
-        path_left = "04_CAN/Images/frame_left.png"
-        start_time = time.time()
-        set_camera_properties_left()
-        set_camera_properties_right()
-        video_capture_left, video_capture_right = Init_Pipeline()
-        GPIO.output(Digital_Out_0, GPIO.HIGH)
-        GPIO.output(Digital_Out_1, GPIO.HIGH)
-        self.image_right = read_frame(video_capture_right)
-        self.image_left = read_frame(video_capture_left)
+    GPIO.output(Digital_Out_0, GPIO.LOW)
+    GPIO.output(Digital_Out_1, GPIO.LOW) 
 
-        GPIO.output(Digital_Out_0, GPIO.LOW)
-        GPIO.output(Digital_Out_1, GPIO.LOW) 
-
-        cv2.imwrite(path_left, self.image_left)
-        cv2.imwrite(path_right, self.image_right)
-        print("It took {} to snap picture".format(time.time() - start_time))
-        print("Exiting " + self.name)
+    cv2.imwrite(path_left, image_left)
+    cv2.imwrite(path_right, image_right)
+    print("It took {} to snap picture".format(time.time() - start_time))
 
 
 # Create new threads
@@ -105,10 +96,8 @@ if __name__ == "__main__":
     print("\nStarting Mainloop")
     thread0 = can_sending_thread("Thread 1: Sending CAN",0)
     thread1 = can_receive_thread("Thread 2: Reading CAN")
-    thread2 = snap_image("Thread 3: Snap Image",0,0)
     thread0.start()
     thread1.start()
-    thread2.start()
 
             
             

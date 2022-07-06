@@ -1,0 +1,8 @@
+[Unit]
+Description=GPIO Init ...
+
+[Service]
+ExecStart=/usr/bin/python3 /home/nvidia/Palletfinder/Startup_Files/Init_I_O.py
+
+[Install]
+WantedBy=multi-user.target

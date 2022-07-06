@@ -1,0 +1,8 @@
+[Unit]
+Description=CAN Init Script
+
+[Service]
+ExecStart=/home/nvidia/Palletfinder/Startup_Files/init_can.sh
+
+[Install]
+WantedBy=multi-user.target
