@@ -6,6 +6,8 @@ import torch.nn.functional as F
 from PIL import Image
 from torchvision import transforms
 import time
+from os.path import exists
+import os
 
 class model(nn.Module):
     def __init__(self):
@@ -27,34 +29,48 @@ class model(nn.Module):
         return x
 
 if __name__ == '__main__':
-    start_time = time.time()
-    # construct the argument parser and parse the arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--img', default='1.jpg', type=str,
-        help='path for the image to test on')
-    args = vars(parser.parse_args())
-
-    lb = joblib.load('home/Palletfinder/03_Make_Prediction/output/lb.pkl')
-
     model = model()
-    model.load_state_dict(torch.load('home/Palletfinder/03_Make_Prediction/output/model.pth'))
+    while(1):
+        while not(exists("home/Palletfinder/03_Make_Prediction/output/Start_Prediction.txt")):
+            time.sleep(0.01)
+            
+            # if exists("test.txt"):
+        os.remove("home/Palletfinder/03_Make_Prediction/output/Start_Prediction.txt")
+        start_time = time.time()
+        # construct the argument parser and parse the arguments
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-i', '--img', default='1.jpg', type=str,
+            help='path for the image to test on')
+        args = vars(parser.parse_args())
 
-    print("It took {} to load Model".format(time.time() - start_time))
-    pred_time = time.time()
+        lb = joblib.load('home/Palletfinder/03_Make_Prediction/output/lb.pkl')
 
-    path = 'home/Palletfinder/03_Make_Prediction/Images/frame_left.png'
-    aug = transforms.Compose([
-                transforms.Resize(256),
-                transforms.ToTensor(),
+        
+        model.load_state_dict(torch.load('home/Palletfinder/03_Make_Prediction/output/model.pth'))
 
-            ])
-    image = Image.open(path)
-    image_copy = image.copy()
-    image = aug(img=image)
-    image = torch.tensor(image, dtype=torch.float)
-    image = image[None,:,:,:]
+        print("It took {} to load Model".format(time.time() - start_time))
+        pred_time = time.time()
 
-    outputs = model(image)
-    _, preds = torch.max(outputs.data, 1)
-    print(f"Predicted output: {lb.classes_[preds]}")
-    print("It took {} to predict".format(time.time() - pred_time))
+        path = 'home/Palletfinder/03_Make_Prediction/Images/frame_left.png'
+        aug = transforms.Compose([
+                    transforms.Resize(256),
+                    transforms.ToTensor(),
+
+                ])
+        image = Image.open(path)
+        image_copy = image.copy()
+        image = aug(img=image)
+        image = torch.tensor(image, dtype=torch.float)
+        image = image[None,:,:,:]
+
+        outputs = model(image)
+        _, preds = torch.max(outputs.data, 1)
+        print(f"Predicted output: {lb.classes_[preds]}")
+        print("It took {} to predict".format(time.time() - pred_time))
+
+        pred = lb.classes_[preds]
+
+        File = open("home/Palletfinder/03_Make_Prediction/output/Prediction.txt","w")
+
+        File.write(pred)
+        File.close()

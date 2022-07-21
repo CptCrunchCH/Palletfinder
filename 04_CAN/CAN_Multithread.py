@@ -2,6 +2,7 @@
 #1. Define a subclass using threading.Thread class.
 #2. Instantiate the subclass and trigger the thread.
 
+from distutils.archive_util import make_archive
 from multiprocessing.connection import wait
 import threading
 from socket import timeout
@@ -9,11 +10,12 @@ import can
 from threading import Thread
 from can.interface import Bus
 import time
+from os.path import exists
+import os
 
 from matplotlib import image
 from V4l2_Functions import *
 import RPi.GPIO as GPIO
-
 
 class can_receive_thread (threading.Thread):
     def __init__(self,name,msg,msg_data):
@@ -107,12 +109,15 @@ if __name__ == '__main__':
     print("\nStarting Mainloop")
     while(1):
         if (thread1.msg_data == 1) or (thread1.msg_data == 2):
-
-            error = snap_images(path_left, path_right)
-
-            Error = True          
-
-            bus_send.send(msg)
+            error_snap_images = snap_images(path_left, path_right)          # Snap Images and save
+            file = open("03_Make_Prediction/output/Start_Prediction.txt","w")   # Start Prediction
+            # while not(exists("03_Make_Prediction/output/prediction.txt")):  # Waiting for Prediction to end
+            #     time.sleep(10)
+            File = open("03_Make_Prediction/output/Prediction.txt","r")
+            Prediction = File.read()
+            print(Prediction)
+            
+            bus_send.send(msg)                                              
             thread1.msg_data = 0
         time.sleep(0.025)
             

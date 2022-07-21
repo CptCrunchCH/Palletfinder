@@ -2,10 +2,10 @@
 
 # Snap Image:
 #   Make an Executable Python File:
-chmod 777 /home/nvidia/Palletfinder/03_Make_Prediction/Snap_Images.py
-chmod +x /home/nvidia/Palletfinder/03_Make_Prediction/Snap_Images.py
+# chmod 777 /home/nvidia/Palletfinder/03_Make_Prediction/Snap_Images.py
+# chmod +x /home/nvidia/Palletfinder/03_Make_Prediction/Snap_Images.py
 #   Snap image and save in /05_Make_Prediction/Images
-python3 /home/nvidia/Palletfinder/03_Make_Prediction/Snap_Images.py
+# python3 /home/nvidia/Palletfinder/03_Make_Prediction/Snap_Images.py
 
 
 # Use docker to read model to make Prediction

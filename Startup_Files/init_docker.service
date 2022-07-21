@@ -1,8 +1,7 @@
 [Unit]
-Description=GPIO Init ...
+Description=Docker Init ...
 
 [Service]
-#ExecStart=/usr/bin/python3 /home/nvidia/Palletfinder/Startup_Files/Init_I_O.py
 ExecStart=/home/nvidia/Palletfinder/Startup_Files/Docker_start.sh start
 
 
