@@ -2,8 +2,7 @@
 Description=Docker Init ...
 
 [Service]
-ExecStart=/home/nvidia/Palletfinder/Startup_Files/Docker_start.sh start
-
+ExecStart=/home/nvidia/Palletfinder/Startup_Files/Docker_start.sh
 
 [Install]
 WantedBy=multi-user.target
