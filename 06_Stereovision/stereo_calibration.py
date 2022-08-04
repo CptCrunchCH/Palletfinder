@@ -2,12 +2,10 @@ import numpy as np
 import cv2 as cv
 import glob
 
-
-
 ################ FIND CHESSBOARD CORNERS - OBJECT POINTS AND IMAGE POINTS #############################
 
 chessboardSize = (9,6)
-frameSize = (640,480)
+frameSize = (1280,720)
 
 
 
@@ -26,8 +24,10 @@ imgpointsL = [] # 2d points in image plane.
 imgpointsR = [] # 2d points in image plane.
 
 
-imagesLeft = glob.glob('images/stereoLeft/*.png')
-imagesRight = glob.glob('images/stereoRight/*.png')
+imagesLeft = glob.glob('/home/nvidia/Palletfinder/06_Stereovision/images/imageL*.png')
+imagesRight = glob.glob('/home/nvidia/Palletfinder/06_Stereovision/images/frameR*.png')
+print("Images Left = ",imagesLeft)
+print("images Right = ",imagesRight)
 
 for imgLeft, imgRight in zip(imagesLeft, imagesRight):
 
@@ -39,7 +39,8 @@ for imgLeft, imgRight in zip(imagesLeft, imagesRight):
     # Find the chess board corners
     retL, cornersL = cv.findChessboardCorners(grayL, chessboardSize, None)
     retR, cornersR = cv.findChessboardCorners(grayR, chessboardSize, None)
-
+    print("retL = ",retL)
+    print("retR = ",retR)
     # If found, add object points, image points (after refining them)
     if retL and retR == True:
 
@@ -56,13 +57,10 @@ for imgLeft, imgRight in zip(imagesLeft, imagesRight):
         cv.imshow('img left', imgL)
         cv.drawChessboardCorners(imgR, chessboardSize, cornersR, retR)
         cv.imshow('img right', imgR)
-        cv.waitKey(1000)
+        cv.waitKey(0)
 
 
 cv.destroyAllWindows()
-
-
-
 
 ############## CALIBRATION #######################################################
 
@@ -99,12 +97,19 @@ rectL, rectR, projMatrixL, projMatrixR, Q, roi_L, roi_R= cv.stereoRectify(newCam
 stereoMapL = cv.initUndistortRectifyMap(newCameraMatrixL, distL, rectL, projMatrixL, grayL.shape[::-1], cv.CV_16SC2)
 stereoMapR = cv.initUndistortRectifyMap(newCameraMatrixR, distR, rectR, projMatrixR, grayR.shape[::-1], cv.CV_16SC2)
 
+print("stereoMapL = ",stereoMapL)
+
 print("Saving parameters!")
-cv_file = cv.FileStorage('stereoMap.xml', cv.FILE_STORAGE_WRITE)
 
+cv_file = cv.FileStorage('/home/nvidia/Palletfinder/06_Stereovision/stereoMap.xml',cv.FILE_STORAGE_WRITE)
+print("Saving Parameters into file:")
 cv_file.write('stereoMapL_x',stereoMapL[0])
+print("XLeft")
 cv_file.write('stereoMapL_y',stereoMapL[1])
+print("YLeft")
 cv_file.write('stereoMapR_x',stereoMapR[0])
+print("XRight")
 cv_file.write('stereoMapR_y',stereoMapR[1])
-
+print("YRight")
 cv_file.release()
+print("Closing")
