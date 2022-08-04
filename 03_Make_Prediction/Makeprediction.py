@@ -43,10 +43,7 @@ if __name__ == '__main__':
             help='path for the image to test on')
         args = vars(parser.parse_args())
 
-        lb = joblib.load('home/Palletfinder/03_Make_Prediction/output/lb.pkl')
 
-        
-        model.load_state_dict(torch.load('home/Palletfinder/03_Make_Prediction/output/model.pth'))
 
         print("It took {} to load Model".format(time.time() - start_time))
         pred_time = time.time()

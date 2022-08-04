@@ -12,9 +12,9 @@ from can.interface import Bus
 import time
 from os.path import exists
 import os
+import cv2 as cv
 
 from matplotlib import image
-from V4l2_Functions import *
 import RPi.GPIO as GPIO
 
 class Docker_Thread (threading.Thread):
@@ -32,6 +32,7 @@ class Docker_Thread (threading.Thread):
         os.system("sudo docker exec Palletfinder /bin/bash -c 'chmod +x /home/Palletfinder/03_Make_Prediction/Makeprediction.py'")
         os.system("sudo docker exec Palletfinder /bin/bash -c '/usr/bin/python3.6 /home/Palletfinder/03_Make_Prediction/Prediction_V2.py' > /dev/null 2>&1 &")
         time.sleep(0.001)
+        print("\n[Info] Please Wait 20s")
         print("Exiting " + self.name)
 
 class can_receive_thread (threading.Thread):
@@ -72,19 +73,23 @@ class can_receive_thread (threading.Thread):
         time.sleep(0.001)
         print("Exiting " + self.name)
 
-def snap_images(path_left, path_right):
+def snap_images(capL, capR):
     try: 
         start_time = time.time()
+        path_right = "03_Make_Prediction/Images/frame_right.png"
+        path_left = "03_Make_Prediction/Images/frame_left.png"
         GPIO.output(Digital_Out_0, GPIO.HIGH)
         GPIO.output(Digital_Out_1, GPIO.HIGH)
-        image_right = read_frame(video_capture_right)
-        image_left = read_frame(video_capture_left)
 
-        cv2.imwrite(path_left, image_left)
-        cv2.imwrite(path_right, image_right)
+        ret, image_left = capL.read()
+        ret, image_right = capR.read()
         
         GPIO.output(Digital_Out_0, GPIO.LOW)
         GPIO.output(Digital_Out_1, GPIO.LOW) 
+
+        cv.imwrite(path_left, image_left)
+        cv.imwrite(path_right, image_right)
+    
         print("It took {} to snap picture".format(time.time() - start_time))
         error = 0x00
     except:
@@ -93,34 +98,64 @@ def snap_images(path_left, path_right):
     return error
 
 def predict():
-    try:
-        file = open("03_Make_Prediction/output/Start_Prediction.txt","w")   # Start Prediction
-        print("File Createt")
-        while exists("03_Make_Prediction/output/prediction.txt"):  # Waiting for Prediction to end
-            time.sleep(10)
-        File = open("03_Make_Prediction/output/Prediction.txt","r")
-        Prediction = File.read()
-        if Prediction == "0_Palette":
-            num_paletts = 0
-        elif Prediction == "1_Palette":
-            num_paletts = 1
-        elif Prediction == "2_Palette":
-            num_paletts = 2
-        elif Prediction == "3_Palette":
-            num_paletts = 3
-        elif Prediction == "4_Palette":
-            num_paletts = 4
-            
-        print(Prediction)
-        error = 0x00
-        status_predict = 0x01
-    except:
-        error = 0x02
-        status_predict = 0x00
-    return error, num_paletts, status_predict
+    
+    file = open("/home/nvidia/Palletfinder/03_Make_Prediction/output/Start_Prediction.txt","w")   # Start Prediction
+    print("File Createt")
+    while not(exists("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/endY_right.txt")):
+        time.sleep(1)            
+    start_time = time.time()
+    # Reading Number Pallets for both images
+    File = open("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/Label_left.txt","r")
+    num_palletsL = File.read()
+    os.remove("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/Label_left.txt")
+    File = open("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/Label_right.txt","r")
+    num_palletsR = File.read()
+    os.remove("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/Label_right.txt")
 
+    # Reading endx Value
+    File = open("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/endX_left.txt","r")
+    endX_left = File.read()
+    os.remove("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/endX_left.txt")
+    File = open("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/endX_right.txt","r")
+    endX_right = File.read()
+    os.remove("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/endX_right.txt")
+    
+    # Reading endy Value
+    File = open("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/endY_left.txt","r")
+    endY_left = File.read()
+    os.remove("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/endY_left.txt")
+    File = open("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/endY_right.txt","r")
+    endY_right = File.read()
+    os.remove("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/endY_right.txt")
+    
+    # Reading startx Value
+    File = open("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/startX_left.txt","r")
+    startX_left = File.read()
+    os.remove("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/startX_left.txt")
+    File = open("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/startX_right.txt","r")
+    startX_right = File.read()
+    os.remove("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/startX_right.txt")
+    
+    # Reading startY Value
+    File = open("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/startY_left.txt","r")
+    startY_left = File.read()
+    os.remove("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/startY_left.txt")
+    File = open("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/startY_right.txt","r")
+    startY_right = File.read()
+    os.remove("/home/nvidia/Palletfinder/03_Make_Prediction/output/Predictions/startY_right.txt")
 
+    bboxL = [int(startX_left),int(startY_left),int(endX_left),int(endY_left)]
+    bboxR = [int(startX_right),int(startY_right),int(endX_right),int(endY_right)]
 
+    num_palletsR = num_palletsR.replace('"','')
+    num_palletsL = num_palletsL.replace('"','')
+    
+    print("It took {} to predict".format(time.time() - start_time))
+    
+    error = 0x00
+    status_predict = 0x01
+    return int(num_palletsL), int(num_palletsR), bboxL, bboxR, status_predict, error
+   
 def detect_height(num_pallets):
     try:
         height_per_pallet = 144 #mm
@@ -159,17 +194,21 @@ if __name__ == '__main__':
     GPIO.setup(Digital_Out_0, GPIO.OUT, initial=GPIO.LOW)
     GPIO.setup(Digital_Out_1, GPIO.OUT, initial=GPIO.LOW)
 
-    set_camera_properties_left()
-    set_camera_properties_right()
-    video_capture_left, video_capture_right = Init_Pipeline()
-    
-    path_right = "03_Make_Prediction/Images/frame_right.png"
-    path_left = "03_Make_Prediction/Images/frame_left.png"
+    # Set Camera
+    capL = cv.VideoCapture(0)
+    capR = cv.VideoCapture(1)
+    #Set the resolution
+    capL.set(cv.CAP_PROP_FRAME_WIDTH, 1280)
+    capL.set(cv.CAP_PROP_FRAME_HEIGHT, 720)
+    capL.set(cv.CAP_PROP_FPS, 30.0)
+    capR.set(cv.CAP_PROP_FRAME_WIDTH, 1280)
+    capR.set(cv.CAP_PROP_FRAME_HEIGHT, 720)
+    capR.set(cv.CAP_PROP_FPS, 30.0)
 
     # Start new Threads    
     thread1 = can_receive_thread("Thread 1: Reading CAN",0,0)
     thread1.start()
-    thread2 = Docker_Thread("Thread 1: Starting Docker")
+    thread2 = Docker_Thread("Thread 2: Starting Docker")
     thread2.start()
 
     # Can Settings
@@ -179,18 +218,28 @@ if __name__ == '__main__':
     bus_send = can.interface.Bus(channel="can0", bustype="socketcan", can_filters=send_filters)
 
     print("\nStarting Mainloop")
+    num_pallets = 0
     while(1):
         if (thread1.msg_data == 1) or (thread1.msg_data == 2):
 
-            error_snap_images = snap_images(path_left, path_right)          # Snap Images and save
-            error_prediction, num_paletts, status_predict = predict()
-            error_height, h1, h2 = detect_height(num_paletts)
-            error_can_send, msg = create_can_message(status_predict,num_paletts,h1,h2)
+            error_snap_images = snap_images(capL, capR)          # Snap Images and save
+            num_palletsL, num_palletsR, bboxL, bboxR, status_predict, error = predict()
+
+            if num_palletsL == num_palletsR:
+                num_pallets = num_palletsL
+                print("Predicted Number of Pallets are the same")
+            else:
+                error = 1
+                print("[Error] Predicted Number of Pallets are not the same !")
+
+
+
+            # error_height, h1, h2 = detect_height(num_pallets)
+            # error_can_send, msg = create_can_message(status_predict,num_pallets,h1,h2)
             
-            bus_send.send(msg)                                              
+            # bus_send.send(msg)                                              
             thread1.msg_data = 0
         time.sleep(0.025)
-            
             
             
       

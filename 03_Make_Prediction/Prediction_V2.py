@@ -202,4 +202,5 @@ if __name__ == '__main__':
         File = open("/home/Palletfinder/03_Make_Prediction/output/Predictions/endY_right.txt","w")
         File.write(str(endY_right))
         File.close()
+        time.sleep(0.01)
         print("[Info] Files Saved")

@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import subprocess
+from V4l2_Functions import *
 
 #------------Init_Pipeline------------#
 # Defnies and initializes both pipelines for video0 and video1
@@ -68,7 +69,7 @@ if __name__ == "__main__":
     set_camera_properties_left()
     set_camera_properties_right()
     video_capture_left, video_capture_right = Init_Pipeline()
-    #show_both_cameras(video_capture_left, video_capture_right)
+    show_both_cameras(video_capture_left, video_capture_right)
     #show_camera_left(video_capture_left)
     # show_camera_Right(video_capture_right)
 
@@ -77,5 +78,5 @@ if __name__ == "__main__":
     ret_val, image_right = read_frame(video_capture_right)
     ret_val, image_left = read_frame(video_capture_left)
 
-    cv2.imwrite(path_left, image_left)
-    cv2.imwrite(path_right, image_right)
+    # cv2.imwrite(path_left, image_left)
+    # cv2.imwrite(path_right, image_right)

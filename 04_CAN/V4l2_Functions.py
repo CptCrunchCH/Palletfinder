@@ -14,20 +14,22 @@ import subprocess
 def Init_Pipeline():
     # ASSIGN CAMERA ADRESS to DEVICE HERE!
     pipeline_Left = " ! ".join(["v4l2src device=/dev/video0",
-                        "video/x-raw, width=1280, height=720, framerate=30/1",
+                        "video/x-raw, width=1280, height=720, framerate=15/1",
                         "videoconvert",
                         "video/x-raw, format=GRAY8",
                         "appsink"
                         ])
 
     pipeline_Right = " ! ".join(["v4l2src device=/dev/video1",
-                        "video/x-raw, width=1280, height=720, framerate=30/1",
+                        "video/x-raw, width=1280, height=720, framerate=15/1",
                         "videoconvert",
                         "video/x-raw, format=GRAY8",
                         "appsink"
                         ])
     video_capture_Left = cv2.VideoCapture(pipeline_Left, cv2.CAP_GSTREAMER)
     video_capture_Right = cv2.VideoCapture(pipeline_Right, cv2.CAP_GSTREAMER)
+    video_capture_Left.set(cv2.CAP_PROP_BUFFERSIZE,3)
+    video_capture_Right.set(cv2.CAP_PROP_BUFFERSIZE,3)
     return video_capture_Left, video_capture_Right
 
 
@@ -64,6 +66,7 @@ def set_camera_properties_left():
 def read_frame(video_capture):
     if video_capture.isOpened():
         ret_val, frame = video_capture.read()
+        video_capture.release()
     return frame
 
 
