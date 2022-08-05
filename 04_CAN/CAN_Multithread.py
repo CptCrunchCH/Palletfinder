@@ -14,6 +14,8 @@ from os.path import exists
 import os
 import cv2 as cv
 
+from V4l2_Functions import *
+
 from matplotlib import image
 import RPi.GPIO as GPIO
 
@@ -185,7 +187,25 @@ def create_can_message(status_predict,num_paletts,h1,h2):
 
     return error, msg
 
+def initcam():
+    cap0 = cv2.VideoCapture(0)
+    cap1 = cv2.VideoCapture(1)
+    if not (cap0.isOpened()):
+        print("Could not open video device0")
+    if not (cap1.isOpened()):
+        print("Could not open video device1")
+    cap0.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cap0.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    cap0.set(cv2.CAP_PROP_FPS, 30.0)
+    cap1.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cap1.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    cap1.set(cv2.CAP_PROP_FPS, 30.0)
+
+    return cap0, cap1
+
 if __name__ == '__main__':
+    capL, capR = initcam()
+
     Digital_Out_0 = 43 # Digital_Out_0
     Digital_Out_1 = 44 # Digital_Out_1
 
@@ -193,17 +213,6 @@ if __name__ == '__main__':
 
     GPIO.setup(Digital_Out_0, GPIO.OUT, initial=GPIO.LOW)
     GPIO.setup(Digital_Out_1, GPIO.OUT, initial=GPIO.LOW)
-
-    # Set Camera
-    capL = cv.VideoCapture(0)
-    capR = cv.VideoCapture(1)
-    #Set the resolution
-    capL.set(cv.CAP_PROP_FRAME_WIDTH, 1280)
-    capL.set(cv.CAP_PROP_FRAME_HEIGHT, 720)
-    capL.set(cv.CAP_PROP_FPS, 30.0)
-    capR.set(cv.CAP_PROP_FRAME_WIDTH, 1280)
-    capR.set(cv.CAP_PROP_FRAME_HEIGHT, 720)
-    capR.set(cv.CAP_PROP_FPS, 30.0)
 
     # Start new Threads    
     thread1 = can_receive_thread("Thread 1: Reading CAN",0,0)
@@ -216,9 +225,7 @@ if __name__ == '__main__':
         {"can_id": 0x1A7, "can_mask": 0x7FF, "extended": False},
     ]
     bus_send = can.interface.Bus(channel="can0", bustype="socketcan", can_filters=send_filters)
-
     print("\nStarting Mainloop")
-    num_pallets = 0
     while(1):
         if (thread1.msg_data == 1) or (thread1.msg_data == 2):
 
@@ -240,9 +247,6 @@ if __name__ == '__main__':
             # bus_send.send(msg)                                              
             thread1.msg_data = 0
         time.sleep(0.025)
-            
-            
-      
-        
 
-
+capL.release()
+capR.release()

@@ -26,10 +26,10 @@ def Init_Pipeline():
                         "video/x-raw, format=GRAY8",
                         "appsink"
                         ])
-    video_capture_Left = cv2.VideoCapture(pipeline_Left, cv2.CAP_GSTREAMER)
-    video_capture_Right = cv2.VideoCapture(pipeline_Right, cv2.CAP_GSTREAMER)
-    video_capture_Left.set(cv2.CAP_PROP_BUFFERSIZE,3)
-    video_capture_Right.set(cv2.CAP_PROP_BUFFERSIZE,3)
+    video_capture_Left = cv2.VideoCapture(0)
+    video_capture_Right = cv2.VideoCapture(1)
+    video_capture_Left.set(cv2.CAP_PROP_BUFFERSIZE,1)
+    video_capture_Right.set(cv2.CAP_PROP_BUFFERSIZE,1)
     return video_capture_Left, video_capture_Right
 
 
